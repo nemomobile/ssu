@@ -130,6 +130,7 @@ class Ssu: public QObject {
   private:
     QString errorString, fallbackLogPath;
     QString cachedModel, cachedFamily;
+    QString cachedVariant;
     bool errorFlag;
     QNetworkAccessManager *manager;
     int pendingRequests;

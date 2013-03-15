@@ -159,8 +159,10 @@ QString Ssu::deviceFamily(){
 
   cachedFamily = "UNKNOWN";
 
-  if (boardMappings->contains("variants/" + model))
+  if (boardMappings->contains("variants/" + model)){
     model = boardMappings->value("variants/" + model).toString();
+    cachedVariant = model; 
+  }
 
   if (boardMappings->contains(model + "/family"))
     cachedFamily = boardMappings->value(model + "/family").toString();
@@ -398,10 +400,21 @@ QString Ssu::repoUrl(QString repoName, bool rndRepo, QHash<QString, QString> rep
   if (!repoParameters.contains("arch"))
     repoParameters.insert("arch", settings->value("arch").toString());
 
-  repoParameters.insert("adaptation", settings->value("adaptation").toString());
+  // Updates also variant thus here.
   repoParameters.insert("deviceFamily", deviceFamily());
-  repoParameters.insert("deviceModel", deviceModel());
 
+  // If device model has adaptation use that ..
+  if (boardMappings->contains(deviceModel() + "/adaptation"))
+    repoParameters.insert("adaptation", boardMappings->value(deviceModel() + "/adaptation").toString());
+  // .. if not then check the variant ..
+  else if (boardMappings->contains(cachedVariant + "/adaptation"))
+    repoParameters.insert("adaptation", boardMappings->value(cachedVariant + "/adaptation").toString());
+  // .. and finally fall back to the main ssu config.
+  else
+    repoParameters.insert("adaptation", settings->value("adaptation").toString());
+
+  repoParameters.insert("deviceModel", deviceModel());
+  
   // Domain variables
   // first read all variables from default-domain
   repoSettings->beginGroup("default-domain");
