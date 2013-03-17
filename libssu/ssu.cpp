@@ -157,15 +157,19 @@ QString Ssu::deviceFamily(){
   if (!cachedFamily.isEmpty())
     return cachedFamily;
 
-  cachedFamily = "UNKNOWN";
-
   if (boardMappings->contains("variants/" + model)){
     model = boardMappings->value("variants/" + model).toString();
     cachedVariant = model; 
   }
 
-  if (boardMappings->contains(model + "/family"))
+  // If there is flavour specific family defined use that..
+  if (boardMappings->contains(model + "/family-"+flavour()))
+    cachedFamily = boardMappings->value(model + "/family-"+flavour()).toString();
+  // .. otherwise use the default family
+  else if (boardMappings->contains(model + "/family"))
     cachedFamily = boardMappings->value(model + "/family").toString();
+  else
+    cachedFamily = "UNKNOWN";
 
   return cachedFamily;
 }
@@ -403,8 +407,14 @@ QString Ssu::repoUrl(QString repoName, bool rndRepo, QHash<QString, QString> rep
   // Updates also variant thus here.
   repoParameters.insert("deviceFamily", deviceFamily());
 
-  // If device model has adaptation use that ..
-  if (boardMappings->contains(deviceModel() + "/adaptation"))
+  // If device model have flavour specific adaptatoin ..
+  if (rndRepo && boardMappings->contains(deviceModel() + "/adaptation-"+flavour()))
+    repoParameters.insert("adaptation", boardMappings->value(deviceModel() + "/adaptation-"+flavour()).toString());
+  // .. if variant has flavour specific adaptation ..
+  else if (rndRepo && boardMappings->contains(cachedVariant + "/adaptation-"+flavour()))
+    repoParameters.insert("adaptation", boardMappings->value(cachedVariant + "/adaptation-"+flavour()).toString());
+  // .. if device model has adaptation use that ..
+  else if (boardMappings->contains(deviceModel() + "/adaptation"))
     repoParameters.insert("adaptation", boardMappings->value(deviceModel() + "/adaptation").toString());
   // .. if not then check the variant ..
   else if (boardMappings->contains(cachedVariant + "/adaptation"))
