@@ -151,7 +151,7 @@ QString Ssu::credentialsUrl(QString scope){
     return "your-configuration-is-broken-and-does-not-contain-credentials-url-for-" + scope;
 }
 
-QString Ssu::deviceFamily(){
+QString Ssu::deviceFamily(bool rnd){
   QString model = deviceModel();
 
   if (!cachedFamily.isEmpty())
@@ -163,7 +163,7 @@ QString Ssu::deviceFamily(){
   }
 
   // If there is flavour specific family defined use that..
-  if (boardMappings->contains(model + "/family-"+flavour()))
+  if (rnd && boardMappings->contains(model + "/family-"+flavour()))
     cachedFamily = boardMappings->value(model + "/family-"+flavour()).toString();
   // .. otherwise use the default family
   else if (boardMappings->contains(model + "/family"))
@@ -399,7 +399,7 @@ QString Ssu::repoUrl(QString repoName, bool rndRepo, QHash<QString, QString> rep
     repoParameters.insert("arch", settings->value("arch").toString());
 
   // Updates also variant thus here.
-  repoParameters.insert("deviceFamily", deviceFamily());
+  repoParameters.insert("deviceFamily", deviceFamily(rndRepo));
 
   // If device model have flavour specific adaptatoin ..
   if (rndRepo && boardMappings->contains(deviceModel() + "/adaptation-"+flavour()))
