@@ -45,7 +45,7 @@ class Ssu: public QObject {
     /**
      * Try to find the device family for the system this is running on
      */
-    Q_INVOKABLE QString deviceFamily();
+    Q_INVOKABLE QString deviceFamily(bool rnd = false);
     /**
      * Try to find out ond what kind of system this is running
      */
@@ -130,6 +130,7 @@ class Ssu: public QObject {
   private:
     QString errorString, fallbackLogPath;
     QString cachedModel, cachedFamily;
+    QString cachedVariant;
     bool errorFlag;
     QNetworkAccessManager *manager;
     int pendingRequests;
