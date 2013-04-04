@@ -7,11 +7,12 @@
 
 #include <QtTest/QtTest>
 
-#include "../sandbox/sandboxfileenginehandler.h"
+#include "libssu/sandbox_p.h"
 #include "urlresolvertest.cpp"
 
 int main(int argc, char **argv){
-  SandboxFileEngineHandler h;
+  Sandbox(QString("%1/configroot").arg(TESTS_DATA_PATH),
+      Sandbox::UseAsSkeleton, Sandbox::ThisProcess);
 
   UrlResolverTest urlResolverTest;
 
