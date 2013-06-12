@@ -112,10 +112,10 @@ QStringList SsuKickstarter::partitions(){
   QDir dir(Sandbox::map(QString("/%1/kickstart/part/")
            .arg(SSU_DATA_DIR)));
 
-  if (dir.exists(deviceModel.toLower()))
-    partitionFile = deviceModel.toLower();
-  else if (dir.exists(deviceInfo.deviceVariant(true).toLower()))
-    partitionFile = deviceInfo.deviceVariant(true).toLower();
+  if (dir.exists(deviceModel.toLower().replace(" ","-")))
+    partitionFile = deviceModel.toLower().replace(" ","-");
+  else if (dir.exists(deviceInfo.deviceVariant(true).toLower().replace(" ","-")))
+    partitionFile = deviceInfo.deviceVariant(true).toLower().replace(" ","-");
   else if (dir.exists("default"))
     partitionFile = "default";
   else {
