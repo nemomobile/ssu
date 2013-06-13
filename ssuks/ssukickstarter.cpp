@@ -132,7 +132,7 @@ QStringList SsuKickstarter::partitions(){
 }
 
 // we intentionally don't support device-specific post scriptlets
-QStringList SsuKickstarter::scriptletSection(QString name, bool chroot){
+QStringList SsuKickstarter::scriptletSection(const QString& name, const bool chroot){
   QStringList result;
   QString path;
   QDir dir;
@@ -175,14 +175,14 @@ QStringList SsuKickstarter::scriptletSection(QString name, bool chroot){
   return result;
 }
 
-void SsuKickstarter::setRepoParameters(QHash<QString, QString> parameters){
+void SsuKickstarter::setRepoParameters(const QHash<QString, QString>& parameters){
   repoOverride = parameters;
 
   if (repoOverride.contains("model"))
     deviceModel = repoOverride.value("model");
 }
 
-bool SsuKickstarter::write(QString kickstart){
+bool SsuKickstarter::write(const QString& kickstart){
   QFile ks;
   QTextStream kout;
   QTextStream qerr(stderr);
