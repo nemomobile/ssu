@@ -22,8 +22,8 @@ class Q_CORE_EXPORT SsuKickstarter: public QObject {
 class SsuKickstarter {
   public:
     SsuKickstarter();
-    void setRepoParameters(QHash<QString, QString> parameters);
-    bool write(QString kickstart="");
+    void setRepoParameters(const QHash<QString, QString>& parameters);
+    bool write(const QString& kickstart="");
 
   private:
     QHash<QString, QString> repoOverride;
@@ -34,7 +34,8 @@ class SsuKickstarter {
     QStringList packages();
     QStringList partitions();
     QStringList repos();
-    QStringList scriptletSection(QString name, bool chroot=true);
+    QStringList scriptletSection(const QString& name, const bool chroot=true);
+    QString replaceWhitespaces(const QString& value) const;
 };
 
 #endif
