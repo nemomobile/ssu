@@ -62,12 +62,9 @@ QStringList SsuKickstarter::repos(){
     // Adaptation repos need to have separate naming so that when images are done
     // the repository caches will not be mixed with each other.
     if (repo.startsWith("adaptation")) {
-      // make sure device model doesn't introduce spaces to the reponame
-      QString deviceModelTmp = deviceModel;
-      deviceModelTmp.replace(" ","-");
       result.append(QString("repo --name=%1-%2-%3 --baseurl=%4")
                     .arg(repo)
-                    .arg(deviceModelTmp)
+                    .arg(replaceWhitespaces(deviceModel))
                     .arg((rndMode ? repoOverride.value("rndRelease")
                           : repoOverride.value("release")))
                     .arg(repoUrl)
@@ -112,10 +109,10 @@ QStringList SsuKickstarter::partitions(){
   QDir dir(Sandbox::map(QString("/%1/kickstart/part/")
            .arg(SSU_DATA_DIR)));
 
-  if (dir.exists(deviceModel.toLower().replace(" ","-")))
-    partitionFile = deviceModel.toLower().replace(" ","-");
-  else if (dir.exists(deviceInfo.deviceVariant(true).toLower().replace(" ","-")))
-    partitionFile = deviceInfo.deviceVariant(true).toLower().replace(" ","-");
+  if (dir.exists(replaceWhitespaces(deviceModel.toLower())))
+    partitionFile = replaceWhitespaces(deviceModel.toLower());
+  else if (dir.exists(replaceWhitespaces(deviceInfo.deviceVariant(true).toLower())))
+    partitionFile = replaceWhitespaces(deviceInfo.deviceVariant(true).toLower());
   else if (dir.exists("default"))
     partitionFile = "default";
   else {
@@ -237,7 +234,7 @@ bool SsuKickstarter::write(QString kickstart){
     if (repoOverride.contains("filename")){
       QString fileName = QString("%1%2")
                                  .arg(outputDir)
-                                 .arg(var.resolveString(repoOverride.value("filename"), &repoOverride).replace(" ","-"));
+                                 .arg(replaceWhitespaces(var.resolveString(repoOverride.value("filename"), &repoOverride)));
 
       ks.setFileName(fileName);
       opened = ks.open(QIODevice::WriteOnly);
@@ -279,4 +276,9 @@ bool SsuKickstarter::write(QString kickstart){
   // POST, die-on-error
 
   return true;
+}
+
+QString SsuKickstarter::replaceWhitespaces(const QString& value) const {
+  QString retval = value;
+  return retval.replace(" " ,"_");
 }

@@ -35,6 +35,7 @@ class SsuKickstarter {
     QStringList partitions();
     QStringList repos();
     QStringList scriptletSection(QString name, bool chroot=true);
+    QString replaceWhitespaces(const QString& value) const;
 };
 
 #endif
