@@ -32,7 +32,7 @@ class SsuKickstarter {
     QStringList packages();
     QString replaceSpaces(const QString &value);
     QStringList repos();
-    QStringList scriptletSection(QString name, bool chroot=true);
+    QStringList scriptletSection(QString name, const QString &sectionPrefix, bool chroot=true);
 };
 
 #endif

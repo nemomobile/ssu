@@ -144,7 +144,7 @@ QStringList SsuKickstarter::packages(){
 }
 
 // we intentionally don't support device-specific post scriptlets
-QStringList SsuKickstarter::scriptletSection(QString name, bool chroot){
+QStringList SsuKickstarter::scriptletSection(QString name, const QString &sectionPrefix, bool chroot){
   QStringList result;
   QString path;
   QDir dir;
@@ -174,8 +174,8 @@ QStringList SsuKickstarter::scriptletSection(QString name, bool chroot){
   }
 
   if (!result.isEmpty()){
-    result.prepend(QString("export SSU_RELEASE_TYPE=%1")
-                   .arg(rndMode ? "rnd" : "release"));
+    if (!sectionPrefix.isEmpty())
+      result.prepend(sectionPrefix);
 
     if (chroot)
       result.prepend("%" + name);
@@ -315,11 +315,18 @@ bool SsuKickstarter::write(QString kickstart){
   foreach (const QString &section, commandSections){
     kout << commandSection(section).join("\n") << endl << endl;
   }
+
   kout << repos().join("\n") << endl << endl;
   kout << packages().join("\n") << endl << endl;
-  kout << scriptletSection("pre", true).join("\n") << endl << endl;
-  kout << scriptletSection("post", true).join("\n") << endl << endl;
-  kout << scriptletSection("post", false).join("\n") << endl << endl;
+
+  QString sectionPrefix = QString("export SSU_RELEASE_TYPE=%1").arg(rndMode ? "rnd" : "release");
+  kout << scriptletSection("pre", sectionPrefix, true).join("\n") << endl << endl;
+  kout << scriptletSection("post", sectionPrefix, true).join("\n") << endl << endl;
+  kout << scriptletSection("post", sectionPrefix, false).join("\n") << endl << endl;
+  sectionPrefix.clear();
+  kout << scriptletSection("pack", sectionPrefix, true).join("\n") << endl << endl;
+  kout << scriptletSection("attachment", sectionPrefix, true).join("\n") << endl << endl;
+
   // add flags as bitmask?
   // POST, die-on-error
 
