@@ -320,6 +320,9 @@ bool SsuKickstarter::write(QString kickstart){
   kout << scriptletSection("pre", true).join("\n") << endl << endl;
   kout << scriptletSection("post", true).join("\n") << endl << endl;
   kout << scriptletSection("post", false).join("\n") << endl << endl;
+  kout << scriptletSection("pack", true).join("\n") << endl << endl;
+  kout << scriptletSection("attachment", true).join("\n") << endl << endl;
+
   // add flags as bitmask?
   // POST, die-on-error
 
