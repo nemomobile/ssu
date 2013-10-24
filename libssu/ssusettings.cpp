@@ -59,7 +59,7 @@ void SsuSettings::merge(bool keepOld){
   }
 
   if (skipMerge){
-    ssuLog->print(LOG_DEBUG, QString("Configuration file is newer than all config.d files, skipping merge"));
+    //ssuLog->print(LOG_DEBUG, QString("Configuration file is newer than all config.d files, skipping merge"));
     return;
   }
 

@@ -546,8 +546,8 @@ void Ssu::updateCredentials(bool force){
     if (settings->contains("lastCredentialsUpdate")){
       QDateTime last = settings->value("lastCredentialsUpdate").toDateTime();
       if (last >= now.addSecs(-1800)){
-        ssuLog->print(LOG_DEBUG, QString("Skipping credentials update, last update was at %1")
-                     .arg(last.toString()));
+        //ssuLog->print(LOG_DEBUG, QString("Skipping credentials update, last update was at %1")
+        //             .arg(last.toString()));
         emit done();
         return;
       }
