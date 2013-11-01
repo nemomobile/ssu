@@ -12,6 +12,21 @@
 #include <QUrlQuery>
 #endif
 
+//libaccounts-qt
+#include <Accounts/Manager>
+#include <Accounts/Account>
+#include <Accounts/Service>
+#include <Accounts/AccountService>
+#include <Accounts/AuthData>
+
+//libsignon-qt
+#include <SignOn/Identity>
+#include <SignOn/SessionData>
+#include <SignOn/AuthSession>
+
+//libsailfishkeyprovider
+#include <sailfishkeyprovider.h>
+
 #include <getdef.h>
 #include <pwd.h>
 
@@ -35,6 +50,8 @@ static void restoreUid(){
 Ssu::Ssu(): QObject(){
   errorFlag = false;
   pendingRequests = 0;
+  accountManager = 0;
+  updatingStoreCredentials = false;
 
 #ifdef SSUCONFHACK
   // dirty hack to make sure we can write to the configuration
@@ -585,19 +602,122 @@ void Ssu::updateCredentials(bool force){
   manager->get(request);
 }
 
-void Ssu::updateStoreCredentials(){
+void Ssu::finishUpdateStoreCredentials(const QString &username, const QString &accessToken){
   SsuCoreConfig *settings = SsuCoreConfig::instance();
-  QString username, password;
-
-  // TODO:
-  // - get values for username/password from store
-  // - use setError() to set error state if credentials can't be received
 
   settings->beginGroup("credentials-store");
   settings->setValue("username", username);
-  settings->setValue("password", password);
+  settings->setValue("password", accessToken);
   settings->endGroup();
   settings->sync();
+}
+
+QString skp_storedKey(const char *provider, const char *service, const char *key)
+{
+    char *storedKey = NULL;
+    QString retn;
+
+    int success = SailfishKeyProvider_storedKey(provider, service, key, &storedKey);
+    if (success == 0 && storedKey != NULL && strlen(storedKey) != 0) {
+        retn = QLatin1String(storedKey);
+    }
+
+    free(storedKey);
+    return retn;
+}
+
+void Ssu::updateStoreCredentials(){
+  // Retrieve the Jolla account credentials from accounts&sso
+  if (!accountManager) {
+    accountManager = new Accounts::Manager(QString::fromLatin1("store"), this);
+  }
+
+  if (updatingStoreCredentials) {
+    qWarning() << "Already updating Jolla Store credentials!";
+    return;
+  }
+
+  Accounts::Account *jollaAccount = 0;
+  Accounts::AccountIdList allStoreAccounts = accountManager->accountList(QString::fromLatin1("store"));
+  foreach (Accounts::AccountId aid, allStoreAccounts) {
+    Accounts::Account *acc = accountManager->account(aid);
+    if (acc->providerName() == QString::fromLatin1("jolla")) {
+      jollaAccount = acc;
+      break;
+    }
+  }
+
+  if (jollaAccount == 0) {
+    qWarning() << "No Jolla Store accounts on device!";
+    return;
+  }
+
+  Accounts::Service storeService = accountManager->service(QString::fromLatin1("jolla-store"));
+  if (!storeService.isValid()) {
+    qWarning() << "No Jolla Store service on device!";
+    return;
+  }
+
+  // The ClientId and ClientSecret are stored in a (privileged-group read-only)
+  // settings file which is mediated by libsailfishkeyprovider.
+  QString clientId = skp_storedKey("jolla", "jolla-store", "client_id");
+  QString clientSecret = skp_storedKey("jolla", "jolla-store", "client_secret");
+
+  // Build the appropriate signon session data.
+  jollaAccount->selectService(storeService);
+  Accounts::AccountService *jollaStoreAccount = new Accounts::AccountService(jollaAccount, storeService);
+  Accounts::AuthData authData = jollaStoreAccount->authData();
+  delete jollaStoreAccount;
+  QVariantMap authParams = authData.parameters();
+  authParams.insert(QString::fromLatin1("ClientId"), clientId);
+  authParams.insert(QString::fromLatin1("ClientSecret"), clientSecret);
+  storeCredentialsUserName = jollaAccount->valueAsString(QString::fromLatin1("username"));
+
+  // Retrieve the identity and use it to sign in
+  // This will return the cached AccessToken (if it exists)
+  // or perform an OAuth2 signon to refresh and return a
+  // new, valid AccessToken.
+  ident = SignOn::Identity::existingIdentity(authData.credentialsId());
+  if (!ident) {
+    qWarning() << "Jolla Store credentials not valid!";
+    return;
+  }
+
+  session = ident->createSession(authData.method());
+  if (!session) {
+    qWarning() << "Unable to create authentication session from Jolla Store credentials!";
+    delete ident;
+    ident = 0;
+    return;
+  }
+
+  connect(session, SIGNAL(response(SignOn::SessionData)),
+          this, SLOT(updateStoreCredentialsHandler(SignOn::SessionData)));
+  connect(session, SIGNAL(error(SignOn::Error)),
+          this, SLOT(updateStoreCredentialsError(SignOn::Error)));
+}
+
+void Ssu::updateStoreCredentialsHandler(const SignOn::SessionData &sessionData)
+{
+  QString accessToken = sessionData.getProperty(QString::fromLatin1("AccessToken")).toString();
+  QString username = storeCredentialsUserName;
+  storeCredentialsUserName = QString();
+  updatingStoreCredentials = false;
+  ident->destroySession(session);
+  ident->deleteLater();
+  ident = 0; session = 0;
+  finishUpdateStoreCredentials(username, accessToken);
+}
+
+void Ssu::updateStoreCredentialsError(const SignOn::Error &error)
+{
+  qWarning() << "Error occurred while signing in to Jolla Store credentials:"
+             << error.type() << ":" << error.message();
+  ident->destroySession(session);
+  ident->deleteLater();
+  ident = 0; session = 0;
+  storeCredentialsUserName = QString();
+  updatingStoreCredentials = false;
 }
 
 void Ssu::unregister(){

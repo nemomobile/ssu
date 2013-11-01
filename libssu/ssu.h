@@ -12,6 +12,12 @@
 #include <QObject>
 #include <QDebug>
 
+#include <Accounts/Manager>
+#include <SignOn/Identity>
+#include <SignOn/AuthSession>
+#include <SignOn/SessionData>
+#include <SignOn/Error>
+
 class QNetworkAccessManager;
 class QNetworkReply;
 class QDomDocument;
@@ -192,6 +198,17 @@ class Ssu: public QObject {
      */
     void registrationStatusChanged();
     void credentialsChanged();
+
+private Q_SLOTS:
+    void updateStoreCredentialsHandler(const SignOn::SessionData &sessionData);
+    void updateStoreCredentialsError(const SignOn::Error &error);
+private:
+    void finishUpdateStoreCredentials(const QString &username, const QString &accessToken);
+    Accounts::Manager *accountManager;
+    SignOn::Identity *ident;
+    SignOn::AuthSession *session;
+    QString storeCredentialsUserName;
+    bool updatingStoreCredentials;
 };
 
 #endif
