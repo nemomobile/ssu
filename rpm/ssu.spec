@@ -16,6 +16,9 @@ BuildRequires: pkgconfig(Qt5SystemInfo)
 BuildRequires: pkgconfig(libzypp)
 BuildRequires: pkgconfig(libsystemd-journal)
 BuildRequires: pkgconfig(libshadowutils)
+BuildRequires: pkgconfig(libsignon-qt5)
+BuildRequires: pkgconfig(accounts-qt5)
+BuildRequires: pkgconfig(libsailfishkeyprovider)
 BuildRequires: oneshot
 BuildRequires: doxygen
 Requires(pre): shadow-utils
