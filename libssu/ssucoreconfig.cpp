@@ -81,6 +81,14 @@ QString SsuCoreConfig::domain(bool pretty){
     return "";
 }
 
+QString SsuCoreConfig::releaseDomain() {
+    if (contains("releaseDomain")) {
+        return value("releaseDomain").toString();
+    }
+
+    return "";
+}
+
 bool SsuCoreConfig::isRegistered(){
   if (!contains("privateKey"))
     return false;
@@ -137,6 +145,12 @@ void SsuCoreConfig::setDomain(QString domain){
   // - in domain messes with default section autodetection,
   // so change it to :
   setValue("domain", domain.replace("-", ":"));
+  sync();
+}
+
+void SsuCoreConfig::setReleaseDomain(QString releaseDomain) {
+  // Same logic as with setDomain() applies
+  setValue("releaseDomain", releaseDomain.replace("-", ":"));
   sync();
 }
 

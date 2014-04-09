@@ -28,8 +28,6 @@
 
 #include "../constants.h"
 
-#define SSU_NETWORK_REQUEST_DOMAIN_DATA (static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1))
-
 static void restoreUid(){
   if (getuid() == 0){
     seteuid(0);
@@ -237,7 +235,6 @@ void Ssu::requestFinished(QNetworkReply *reply){
   SsuLog *ssuLog = SsuLog::instance();
   SsuCoreConfig *settings = SsuCoreConfig::instance();
   QNetworkRequest request = reply->request();
-  QVariant originalDomainVariant = request.attribute(SSU_NETWORK_REQUEST_DOMAIN_DATA);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
   ssuLog->print(LOG_DEBUG, QString("Certificate used was issued for '%1' by '%2'. Complete chain:")
@@ -316,11 +313,8 @@ void Ssu::requestFinished(QNetworkReply *reply){
 
 failure:
   // Restore the original domain in case of failures with the registration
-  if (!originalDomainVariant.isNull()) {
-    QString originalDomain = originalDomainVariant.toString();
-    ssuLog->print(LOG_DEBUG, QString("Restoring domain on error: '%1'").arg(originalDomain));
-    setDomain(originalDomain);
-  }
+  ssuLog->print(LOG_DEBUG, QString("Restoring domain on error: '%1'").arg(settings->releaseDomain()));
+  setDomain(settings->releaseDomain());
 
   // Fall through to cleanup handling in success from failure label
 success:
@@ -340,9 +334,7 @@ void Ssu::sendRegistration(QString usernameDomain, QString password){
   SsuCoreConfig *settings = SsuCoreConfig::instance();
   SsuDeviceInfo deviceInfo;
 
-  QNetworkRequest request;
-  request.setAttribute(SSU_NETWORK_REQUEST_DOMAIN_DATA, domain());
-  ssuLog->print(LOG_DEBUG, QString("Saving current domain before request: '%1'").arg(domain()));
+  settings->setReleaseDomain(domain());
 
   // Username can include also domain, (user@domain), separate those
   if (usernameDomain.contains('@')) {
@@ -384,6 +376,7 @@ void Ssu::sendRegistration(QString usernameDomain, QString password){
 
   sslConfiguration.setCaCertificates(QSslCertificate::fromPath(ssuCaCertificate));
 
+  QNetworkRequest request;
   request.setUrl(QUrl(QString(ssuRegisterUrl)
                       .arg(IMEI)
                    ));
@@ -654,6 +647,7 @@ void Ssu::unregister(){
   settings->setValue("privateKey", "");
   settings->setValue("certificate", "");
   settings->setValue("registered", false);
+  settings->setValue("domain", settings->releaseDomain());
   settings->sync();
   emit registrationStatusChanged();
 }
