@@ -65,6 +65,11 @@ class SsuCoreConfig: public SsuSettings {
      */
     Q_INVOKABLE QString domain(bool pretty=false);
     /**
+     * Get the stored release domain
+     * @return release domain, or "" if not set
+     */
+    Q_INVOKABLE QString releaseDomain();
+    /**
      * Return devices RND registration status
      * @retval true device is registered
      * @retval false device is not registered
@@ -95,6 +100,10 @@ class SsuCoreConfig: public SsuSettings {
      * Set the domain string (usually something like nemo, jolla, ..)
      */
     Q_INVOKABLE void setDomain(QString domain);
+    /**
+     * Set the domain string used when not in RnD mode (for restoring later)
+     */
+    Q_INVOKABLE void setReleaseDomain(QString releaseDomain);
     /**
      * Return configuration settings regarding ssl verification
      * @retval true SSL verification must be used; that's the default if not configured
