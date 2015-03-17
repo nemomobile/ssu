@@ -338,6 +338,11 @@ QString SsuDeviceInfo::deviceUid(){
   return "";
 }
 
+QString SsuDeviceInfo::adaptationVersion()
+{
+  return hwRelease()["PRETTY_NAME"];
+}
+
 QStringList SsuDeviceInfo::disabledRepos(){
   QStringList result;
 
