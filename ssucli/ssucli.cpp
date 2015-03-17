@@ -544,6 +544,7 @@ void SsuCli::optStatus(QStringList opt){
   else
     qout << "Release: " << ssu.release() << endl;
   qout << "Domain: " <<  ssu.domain() << endl;
+  qout << "Adaptation: " << deviceInfo.adaptationVersion() << endl;
 }
 
 void SsuCli::optUpdateCredentials(QStringList opt){

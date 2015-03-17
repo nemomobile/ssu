@@ -59,6 +59,11 @@ class SsuDeviceInfo: public QObject {
      */
     Q_INVOKABLE QString deviceUid();
     /**
+     * Get the hardware adaptation version
+     * @return The value of PRETTY_NAME= in /etc/hw-release
+     */
+    Q_INVOKABLE QString adaptationVersion();
+    /**
      * Return the list of repositories explicitely disabled for this device
      * This does not include repositories only disabled in the user configuration.
      */
