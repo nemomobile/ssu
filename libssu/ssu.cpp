@@ -676,6 +676,8 @@ void Ssu::unregister(){
   settings->setValue("privateKey", "");
   settings->setValue("certificate", "");
   settings->setValue("registered", false);
+  if (settings->contains("default-sales-domain"))
+      setDomain(settings->value("default-sales-domain").toString());
   settings->sync();
   emit registrationStatusChanged();
 }
