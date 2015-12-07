@@ -1,8 +1,0 @@
-[Unit]
-Description=SSU service
-
-[Service]
-Type=dbus
-BusName=org.nemo.ssu
-ExecStart=/usr/bin/ssud
-
